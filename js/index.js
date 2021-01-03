@@ -252,8 +252,8 @@
                 : self.creatListHTML();
 
             if (window.history && window.history.replaceState)
-                val ? history.replaceState({}, "jsdig", "?kw=" + val) :
-                    history.replaceState({}, "jsdig", "/");
+                val ? history.replaceState({}, "fed-static", "?kw=" + val) :
+                    history.replaceState({}, "fed-static", "/");
 
         },
         changeKeyworlds: function (val) {
@@ -274,9 +274,18 @@
             self.getTagsAll();
 
             // 绑定输入事件
-            self.bindEvent(self.inputElm, 'input', function (e) {
+            self.bindEvent(self.inputElm, 'keypress', function (e) {
+
                 var val = e.target.value
-                self.changeKeyworlds(val);
+                if (e.key !== undefined) {
+                    if (e.key === 'Enter') {
+                        self.changeKeyworlds(val);
+                    }
+                } else if (e.keyCode !== undefined) {
+                    if (e.keyCode === '13') {
+                        self.changeKeyworlds(val);
+                    }
+                }
             })
             kw && (self.inputElm.value = kw);
             self.valToHTML(kw);
@@ -309,10 +318,10 @@
             //以下是一些常用的配置,当然不写也可以的.
             // page: {
             //     num: 0, //当前页 默认0,回调之前会加1; 即callback(page)会从1开始
-            //     size: 20 //每页数据条数,默认10
+            //     size: 3 //每页数据条数,默认10
             // },
-            htmlNodata: '<p class="upwarp-nodata">-- END --</p>',
-            // noMoreSize: 5, //如果列表已无数据,可设置列表的总数量要大于5才显示无更多数据;
+            // htmlNodata: '<p class="upwarp-nodata">-- END --</p>',
+            // noMoreSize: 0, //如果列表已无数据,可设置列表的总数量要大于5才显示无更多数据;
             toTop: {
                 //回到顶部按钮
                 src: "./img/mescroll-totop.png", //图片路径,默认null,支持网络图
@@ -340,9 +349,12 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
 
-                callback && (callback(JSON.parse(xhr.responseText), xhr))
+                var data = JSON.parse(xhr.responseText);
 
-                mescroll.endErr();
+                mescroll.endSuccess(data.data.total);
+
+                callback && (callback(data, xhr))
+
             }
         };
         xhr.open('GET', url, true);
